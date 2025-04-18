@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+// Define error interface for better type safety
+interface OpenAIErrorResponse {
+  status?: number;
+  data?: unknown;
+}
+
+interface OpenAIError extends Error {
+  response?: OpenAIErrorResponse;
+}
+
 // Create a factory function for OpenAI client to avoid initialization during build time
 const createOpenAIClient = () => {
   // Check if API key exists before creating the client
@@ -42,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (!openai) {
       console.warn('OpenAI API key is not configured. Using mock response for development.');
       return NextResponse.json({
-        message: createMockResponse(question, context)
+        message: createMockResponse(question)
       });
     }
     
@@ -66,9 +76,9 @@ export async function POST(request: NextRequest) {
     
     try {
       console.log("Making API call to OpenAI...");
+      console.log("Using model: gpt-4o");
       
-      // Call OpenAI with proper configuration for the Project API format key
-      // Note: Keys starting with 'sk-proj-' are Project API keys which have different requirements
+      // Call OpenAI with proper configuration
       const completion = await openai.chat.completions.create({
         model: "gpt-4o",  // Latest and most capable model
         messages: [
@@ -82,96 +92,48 @@ export async function POST(request: NextRequest) {
       // If we get here, the API call was successful
       console.log("API call successful, response received");
       
-      console.log("API call successful");
-      
       return NextResponse.json({
-        response: completion.choices[0].message.content
+        message: completion.choices[0].message.content
       });
-    } catch (error: unknown) {
-      // Define error type for better handling
-      type OpenAIError = {
-        message?: string;
-        type?: string;
-        status?: number;
-        code?: string;
-      };
-
-      // Detailed error logging with specific error message extraction
-      console.error('Error from OpenAI API:', error instanceof Error ? error.message : String(error));
+    } catch (error) {
+      // Log detailed error information
+      console.error("OpenAI API Error:", error);
       
-      // Cast to appropriate error type for handling
-      const openAIError = error as OpenAIError;
+      const apiError = error as OpenAIError;
       
-      // Extract useful error details without exposing sensitive information
-      const errorDetails = {
-        message: openAIError.message || 'Unknown error',
-        type: openAIError.type || 'Unknown type',
-      };
-      console.error('Error details:', JSON.stringify(errorDetails, null, 2));
-      
-      // Try to check what kind of error occurred for better error messages
-      let errorMessage = "An error occurred while analyzing motion data";
-      
-      const errorMsg = errorDetails.message;
-      if (typeof errorMsg === 'string') {
-        if (errorMsg.includes("authentication") || errorMsg.includes("API key")) {
-          errorMessage += "There seems to be an issue with the API authentication. ";
-        } else if (errorMsg.includes("billing") || errorMsg.includes("insufficient")) {
-          errorMessage += "There might be an issue with the account billing. ";
-        } else if (errorMsg.includes("rate limit")) {
-          errorMessage += "We've hit a rate limit. Please try again in a moment. ";
-        }
+      // Get more detailed error information if available
+      if (apiError.response) {
+        console.error("Status:", apiError.response.status);
+        console.error("Data:", apiError.response.data);
       }
       
-      // Use fallback response with specific error message
-      return NextResponse.json({
-        response: createMockResponse(question, context) + 
-                "\n\n(Note: This is a fallback response. " + errorMessage + "Please try again later.)"
-      });
+      // Return a helpful error to the client
+      return NextResponse.json(
+        { 
+          error: 'Error from OpenAI API', 
+          details: apiError.message || "Unknown error",
+          status: apiError.response?.status || 500
+        },
+        { status: 500 }
+      );
     }
   } catch (error) {
-    console.error('Error processing LLM request:', error);
+    const requestError = error as Error;
+    console.error('Error processing request:', requestError);
     return NextResponse.json(
-      { error: 'Failed to process request' },
+      { error: 'Error processing your request', details: requestError.message },
       { status: 500 }
     );
   }
 }
 
-// Fallback for development without API key - with conversational style
-function createMockResponse(question: string, context: string): string {
-  // Extract some data from the context to make the response relevant
-  const contextLines = context.split('\n');
-  const currentFrame = contextLines.find(line => line.includes('Current frame:'))?.replace('- Current frame:', '').trim() || 'unknown';
-  const totalFrames = contextLines.find(line => line.includes('Total frames:'))?.replace('- Total frames:', '').trim() || 'unknown';
-  
-  // Find the selected joint if any
-  const selectedJointLine = contextLines.find(line => line.includes('Selected joint:'));
-  const selectedJoint = selectedJointLine?.replace('Selected joint:', '').trim();
-  
-  // Check what the question is about to generate a relevant response
-  const questionLower = question.toLowerCase();
-  
-  if (questionLower.includes('unusual') || questionLower.includes('anomal')) {
-    return `I see some asymmetry between your left and right sides in frame ${currentFrame}. Your acceleration pattern has small irregularities - might be compensation. Are you feeling any discomfort?`;
+// Create a mock response for development or when OpenAI is not available
+function createMockResponse(question: string): string {
+  if (question.toLowerCase().includes('speed') || question.toLowerCase().includes('velocity')) {
+    return "Your movement speed looks good! I noticed your velocity is consistent throughout the motion. Try focusing on maintaining this rhythm while adding a bit more power to your finish.";
+  } else if (question.toLowerCase().includes('form') || question.toLowerCase().includes('posture')) {
+    return "Your form looks solid overall. I noticed your back remains straight and your shoulders are well-aligned. Consider keeping your core a bit tighter through the full range of motion.";
+  } else {
+    return "Your motion looks fluent and coordinated. I can see good balance throughout the movement. Try focusing on your breathing pattern to get even more stability.";
   }
-  
-  if (questionLower.includes('compare') || questionLower.includes('ideal form')) {
-    return `Your form is good overall! You're shifting weight slightly to one side with some extra lateral movement. Try keeping your weight more centered next time.`;
-  }
-  
-  if (questionLower.includes('acceleration') || questionLower.includes('velocity')) {
-    return `Your ankles and wrists move fastest - exactly what we want! Peak acceleration hits mid-movement at about 2.3 units. Power looks well-distributed.`;
-  }
-  
-  if (questionLower.includes('imbalance')) {
-    return `Your right side works about 15% harder than your left. Movement paths differ slightly side to side. Try some balance exercises to even things out.`;
-  }
-  
-  if (selectedJoint && questionLower.includes(selectedJoint.toLowerCase())) {
-    return `Your ${selectedJoint} shows a nice flow - moderate start, powerful middle, smooth finish. The slight arc is perfect, and your range of motion looks good!`;
-  }
-  
-  // Default response for other questions
-  return `Looking at frame ${currentFrame}/${totalFrames}, your movement looks solid! Good coordination and balanced posture overall. Anything specific you'd like me to check?`;
 }
