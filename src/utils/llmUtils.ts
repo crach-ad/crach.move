@@ -132,12 +132,14 @@ export function prepareDataContext(
 export async function callLLM(userMessage: string, dataContext: string): Promise<string> {
   try {
     // Prepare the request body with both the user query and the data context
+    // Use 'question' and 'context' to match the parameter names expected by the API route
     const body = JSON.stringify({
-      userMessage,
-      dataContext
+      question: userMessage,
+      context: dataContext
     });
     
-    // Call the API
+    // Call the API with proper error logging
+    console.log('Sending request to /api/analyze-motion');
     const response = await fetch('/api/analyze-motion', {
       method: 'POST',
       headers: {
@@ -147,11 +149,16 @@ export async function callLLM(userMessage: string, dataContext: string): Promise
     });
     
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
+      console.error(`API request failed with status ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Error details:', errorData);
+      throw new Error(`API request failed with status ${response.status}: ${errorData?.error || 'Unknown error'}`);
     }
     
+    // Parse the response
     const data = await response.json();
-    return data.message;
+    // The backend returns the response in the 'message' field
+    return data.message || 'Sorry, I encountered an error analyzing your motion data. Please try again.';
     
   } catch (error) {
     console.error('Error calling LLM:', error);
