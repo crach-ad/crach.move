@@ -1,4 +1,4 @@
-import { MocapData } from "@/data/sampleMocapData";
+import { MocapData, JointData } from "@/utils/types";
 
 /**
  * Linear interpolation between two values
@@ -63,13 +63,26 @@ export function getInterpolatedFrame(
     const currentJoint = currentFrame.joint_data[jointName];
     const nextJoint = nextFrame.joint_data[jointName];
     
-    interpolatedFrame.joint_data[jointName] = {
+    // Start with the required properties
+    const interpolatedJoint: JointData = {
       position: lerpPosition(currentJoint.position, nextJoint.position, subFramePosition),
       type: currentJoint.type,
-      rotations: lerpRotation(currentJoint.rotations, nextJoint.rotations, subFramePosition),
-      torques: lerpRotation(currentJoint.torques, nextJoint.torques, subFramePosition),
-      reaction_forces: lerp(currentJoint.reaction_forces, nextJoint.reaction_forces, subFramePosition),
     };
+    
+    // Add optional properties only if they exist in both frames
+    if (currentJoint.rotations && nextJoint.rotations) {
+      interpolatedJoint.rotations = lerpRotation(currentJoint.rotations, nextJoint.rotations, subFramePosition);
+    }
+    
+    if (currentJoint.torques && nextJoint.torques) {
+      interpolatedJoint.torques = lerpRotation(currentJoint.torques, nextJoint.torques, subFramePosition);
+    }
+    
+    if (currentJoint.reaction_forces !== undefined && nextJoint.reaction_forces !== undefined) {
+      interpolatedJoint.reaction_forces = lerp(currentJoint.reaction_forces, nextJoint.reaction_forces, subFramePosition);
+    }
+    
+    interpolatedFrame.joint_data[jointName] = interpolatedJoint;
   });
   
   return interpolatedFrame;

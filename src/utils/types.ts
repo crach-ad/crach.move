@@ -48,7 +48,11 @@ export interface Message {
 }
 
 export interface MotionAnalysisChatProps {
-  mocapData: MocapData;
+  mocapData: {
+    mocap_data: FrameData[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any; // Necessary to support various MocapData formats
+  };
   currentFrame: number;
   subFramePosition?: number;
   selectedJoint: string | null;

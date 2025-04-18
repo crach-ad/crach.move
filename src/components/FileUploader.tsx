@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { MocapData } from "@/data/sampleMocapData";
+import { MocapData } from "@/utils/types";
 
 // Icons
 const UploadIcon = () => (

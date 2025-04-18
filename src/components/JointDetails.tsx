@@ -1,6 +1,6 @@
 "use client";
 
-import { MocapData } from "@/data/sampleMocapData";
+import { MocapData } from "@/utils/types";
 
 interface JointDetailsProps {
   frameData: MocapData["mocap_data"][0];
@@ -76,7 +76,7 @@ export default function JointDetails({
         <div>
           <h4 className="text-sm font-medium text-gray-400 mb-1">Rotation ({jointData.type})</h4>
           <div className="grid grid-cols-3 gap-2">
-            {jointData.rotations.map((rot, idx) => (
+            {jointData.rotations && jointData.rotations.map((rot, idx) => (
               <div key={idx} className="bg-gray-700 p-2 rounded">
                 <span className="text-xs text-gray-400">{idx === 0 ? 'X' : idx === 1 ? 'Y' : 'Z'}</span>
                 <div className="text-sm font-mono">{rot.toFixed(4)}</div>
@@ -88,7 +88,7 @@ export default function JointDetails({
         <div>
           <h4 className="text-sm font-medium text-gray-400 mb-1">Torques</h4>
           <div className="grid grid-cols-3 gap-2">
-            {jointData.torques.map((torque, idx) => (
+            {jointData.torques && jointData.torques.map((torque, idx) => (
               <div key={idx} className="bg-gray-700 p-2 rounded">
                 <span className="text-xs text-gray-400">{idx === 0 ? 'X' : idx === 1 ? 'Y' : 'Z'}</span>
                 <div className="text-sm font-mono">{torque.toFixed(4)}</div>
@@ -100,7 +100,9 @@ export default function JointDetails({
         <div>
           <h4 className="text-sm font-medium text-gray-400 mb-1">Reaction Forces</h4>
           <div className="bg-gray-700 p-2 rounded">
-            <div className="text-sm font-mono">{jointData.reaction_forces.toFixed(4)}</div>
+            {jointData.reaction_forces !== undefined && (
+              <div className="text-sm font-mono">{jointData.reaction_forces.toFixed(4)}</div>
+            )}
           </div>
         </div>
       </div>

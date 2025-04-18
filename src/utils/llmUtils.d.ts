@@ -1,27 +1,14 @@
-export interface MocapJointData {
-  position: number[];
-  type: string;
-  rotations: number[];
-  torques: number[];
-  reaction_forces: number;
-}
+import type { MocapData } from './types';
 
-export interface MocapFrameData {
-  timestamp: string;
-  joint_data: {
-    [key: string]: MocapJointData;
-  };
-}
-
-export interface MocapData {
-  mocap_data: MocapFrameData[];
-}
-
+// Function declarations
 export function prepareDataContext(
   mocapData: MocapData, 
   currentFrame: number,
-  subFramePosition?: number,
-  selectedJoint?: string | null
+  selectedJoint: string | null,
+  subFramePosition?: number
 ): string;
 
-export function callLLM(userQuestion: string, dataContext: string): Promise<string>;
+export function callLLM(
+  userMessage: string, 
+  dataContext: string
+): Promise<string>;
