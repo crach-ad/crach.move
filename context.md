@@ -31,6 +31,15 @@ crach.move is a biometric analysis system designed to visualize and analyze moti
 - Reset functionality to return to sample data
 - Position and movement controls for manipulating the stick figure in 3D space
 - Automatic centering and front-facing view when loading new data
+- AI-powered motion analysis through OpenAI integration with concise, friendly responses
+- Chat assistant named "Movo" that provides brief, conversational feedback
+
+## Updates
+### April 17, 2025
+- Enhanced AI assistant conversation style to be concise and casual
+- Limited responses to 3-5 sentences for improved readability
+- Implemented text-message style communication
+- Personalized the assistant with the name "Movo"
 
 ## Future Enhancements
 - Advanced analytics and comparison features

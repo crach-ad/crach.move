@@ -32,18 +32,23 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    // System prompt for motion analysis
-    const systemPrompt = `You are a biomechanical motion analysis expert that provides detailed, 
-    scientific insights on movement patterns from motion capture data. 
+    // System prompt for concise, conversational motion analysis assistant
+    const systemPrompt = `You are Movo, a friendly motion coach who gives brief, helpful feedback.
     
-    Your analysis should:
-    - Be precise and technically accurate, using proper biomechanical terminology
-    - Identify notable patterns, asymmetries, or anomalies in the movement
-    - Explain the potential implications for performance and injury risk
-    - Suggest potential improvements based on established principles of movement science
-    - Reference the specific numerical data from the context when relevant
+    EXTREMELY IMPORTANT: Keep all responses under 3 sentences when possible. Never exceed 5 sentences.
     
-    Format your responses concisely, but include all relevant insights.`;
+    Your style is:
+    - Casual and friendly - like a text from a coach friend
+    - Ultra-concise - get to the point immediately
+    - Use simple language instead of technical terms
+    - One quick insight + one short suggestion when relevant
+    
+    Always be:
+    - Encouraging but honest
+    - Conversational but brief
+    - Helpful without overwhelming
+    
+    End with a simple question only when it adds value. Avoid asking questions in every response.`;
     
     try {
       console.log("Making API call to OpenAI...");
@@ -107,7 +112,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Fallback for development without API key
+// Fallback for development without API key - with conversational style
 function createMockResponse(question: string, context: string): string {
   // Extract some data from the context to make the response relevant
   const contextLines = context.split('\n');
@@ -122,25 +127,25 @@ function createMockResponse(question: string, context: string): string {
   const questionLower = question.toLowerCase();
   
   if (questionLower.includes('unusual') || questionLower.includes('anomal')) {
-    return `Based on the motion data from frame ${currentFrame}/${totalFrames}, I can identify several unusual patterns. The movement shows some asymmetry between left and right sides, and there's a slight irregularity in the acceleration pattern. This could indicate compensatory movement or possible coordination issues.`;
+    return `I see some asymmetry between your left and right sides in frame ${currentFrame}. Your acceleration pattern has small irregularities - might be compensation. Are you feeling any discomfort?`;
   }
   
   if (questionLower.includes('compare') || questionLower.includes('ideal form')) {
-    return `Compared to ideal form, this movement shows some deviations. Proper form typically maintains a more vertical spine alignment and symmetric weight distribution. In your motion data, I notice slightly more weight shifted to one side and some excess lateral movement that could be optimized for better performance and reduced injury risk.`;
+    return `Your form is good overall! You're shifting weight slightly to one side with some extra lateral movement. Try keeping your weight more centered next time.`;
   }
   
   if (questionLower.includes('acceleration') || questionLower.includes('velocity')) {
-    return `The acceleration data shows interesting patterns. The highest accelerations occur in the ankle and wrist joints, which is typical for many athletic movements. The peak acceleration value is approximately 2.3 units per frame squared, which occurs around the middle of the movement sequence.`;
+    return `Your ankles and wrists move fastest - exactly what we want! Peak acceleration hits mid-movement at about 2.3 units. Power looks well-distributed.`;
   }
   
   if (questionLower.includes('imbalance')) {
-    return `There is a notable imbalance between left and right sides in this movement. The right side appears to bear approximately 15% more load than the left side, and the movement pattern shows some asymmetry in the trajectory. This could potentially lead to overcompensation issues over time.`;
+    return `Your right side works about 15% harder than your left. Movement paths differ slightly side to side. Try some balance exercises to even things out.`;
   }
   
   if (selectedJoint && questionLower.includes(selectedJoint.toLowerCase())) {
-    return `The ${selectedJoint} shows an interesting movement pattern. It begins with moderate velocity, peaks in the middle of the movement with the highest acceleration, and then decelerates smoothly. The trajectory forms a slight arc rather than a straight line, which is normal for this type of movement. The position data suggests good range of motion overall.`;
+    return `Your ${selectedJoint} shows a nice flow - moderate start, powerful middle, smooth finish. The slight arc is perfect, and your range of motion looks good!`;
   }
   
   // Default response for other questions
-  return `Based on the motion data analysis (frame ${currentFrame}/${totalFrames}), I observe a typical biomechanical sequence with proper joint coordination. The velocity and acceleration profiles are within normal ranges, and the joint positions indicate a balanced posture. For more specific analysis, you could ask about particular joints or phases of the movement.`;
+  return `Looking at frame ${currentFrame}/${totalFrames}, your movement looks solid! Good coordination and balanced posture overall. Anything specific you'd like me to check?`;
 }
