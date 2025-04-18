@@ -1,16 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Initialize OpenAI client with proper configuration
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY?.trim(), // Ensure no whitespace
-  dangerouslyAllowBrowser: false, // Make sure it only runs on server
-});
-
-// For debugging - log sanitized info about the API key
-console.log("API Key available:", !!process.env.OPENAI_API_KEY);
-console.log("API Key length:", process.env.OPENAI_API_KEY?.length);
-console.log("API Key format check:", process.env.OPENAI_API_KEY?.startsWith("sk-"));
+// Create a factory function for OpenAI client to avoid initialization during build time
+const createOpenAIClient = () => {
+  // Check if API key exists before creating the client
+  if (!process.env.OPENAI_API_KEY) {
+    console.warn('OpenAI API key is missing. API calls will use mock responses.');
+    return null;
+  }
+  
+  // Only create the client when API key is available
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY.trim(), // Ensure no whitespace
+    dangerouslyAllowBrowser: false, // Make sure it only runs on server
+  });
+  
+  // Log sanitized info about the API key for debugging
+  console.log("API Key available:", true);
+  console.log("API Key length:", process.env.OPENAI_API_KEY.length);
+  console.log("API Key format check:", process.env.OPENAI_API_KEY.startsWith("sk-"));
+  
+  return openai;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,11 +35,14 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Check if OpenAI API key is configured
-    if (!process.env.OPENAI_API_KEY) {
+    // Create OpenAI client only when needed
+    const openai = createOpenAIClient();
+    
+    // Use mock response if API key is not available
+    if (!openai) {
       console.warn('OpenAI API key is not configured. Using mock response for development.');
       return NextResponse.json({
-        response: createMockResponse(question, context)
+        message: createMockResponse(question, context)
       });
     }
     

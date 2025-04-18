@@ -1,10 +1,20 @@
 import { NextRequest } from 'next/server';
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Create a factory function for OpenAI client to avoid initialization during build time
+const createOpenAIClient = () => {
+  // Check if API key exists before creating the client
+  if (!process.env.OPENAI_API_KEY) {
+    console.warn('OpenAI API key is missing. API calls will use mock responses.');
+    return null;
+  }
+  
+  // Only create the client when API key is available
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY.trim(),
+    dangerouslyAllowBrowser: false,
+  });
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,8 +28,11 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Check if OpenAI API key is configured
-    if (!process.env.OPENAI_API_KEY) {
+    // Create OpenAI client only when needed
+    const openaiClient = createOpenAIClient();
+    
+    // If API key is missing, use mock response
+    if (!openaiClient) {
       console.warn('OpenAI API key is not configured. Using mock response for development.');
       
       // Create a mock streaming response for development
@@ -29,12 +42,12 @@ export async function POST(request: NextRequest) {
           const mockResponse = createMockResponse(question, context);
           
           // Split the mock response into chunks to simulate streaming
-          const chunks = mockResponse.split('. ');
+          const chunks = mockResponse.split(' ');
           
+          // Send each chunk with a delay
           for (const chunk of chunks) {
-            controller.enqueue(encoder.encode(chunk + '. '));
-            // Add a small delay to simulate streaming
-            await new Promise(resolve => setTimeout(resolve, 100));
+            controller.enqueue(encoder.encode(chunk + ' '));
+            await new Promise(resolve => setTimeout(resolve, 50));
           }
           
           controller.close();
@@ -68,7 +81,7 @@ export async function POST(request: NextRequest) {
     End with a simple question only when it adds value. Avoid asking questions in every response.`;
     
     // Create OpenAI streaming completion
-    const stream = await openai.chat.completions.create({
+    const stream = await openaiClient.chat.completions.create({
       model: "gpt-4o", // Latest and most capable model
       messages: [
         { role: "system", content: systemPrompt },
