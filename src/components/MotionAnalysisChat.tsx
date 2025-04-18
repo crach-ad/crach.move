@@ -124,7 +124,11 @@ export default function MotionAnalysisChat({
     
     try {
       // Create a type-safe wrapper for prepareDataContext to handle type compatibility
-      const prepareContext = (data: any, frame: number, joint: string | null, subPos: number) => {
+      // Define a minimal type that satisfies our requirements
+      type MocapDataMinimal = { mocap_data: Array<{ timestamp: string; joint_data: Record<string, unknown> }> };
+      
+      const prepareContext = (data: MocapDataMinimal, frame: number, joint: string | null, subPos: number) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore: Bypassing type checking for cross-module compatibility
         return prepareDataContext(data, frame, joint, subPos);
       };
