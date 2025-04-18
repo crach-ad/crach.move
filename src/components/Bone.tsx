@@ -20,7 +20,7 @@ export default function Bone({
   const ref = useRef<THREE.Mesh>(null);
   
   // Calculate the midpoint, length, and orientation of the bone
-  const { position, rotation, height } = useMemo(() => {
+  const { position, rotation } = useMemo(() => {
     // Create vectors from the positions
     const start = new THREE.Vector3(startPosition[0], startPosition[1], startPosition[2]);
     const end = new THREE.Vector3(endPosition[0], endPosition[1], endPosition[2]);
@@ -48,9 +48,10 @@ export default function Bone({
     
     const euler = new THREE.Euler().setFromQuaternion(quaternion);
     
+    // Return as properly typed arrays for Three.js
     return {
-      position: [midpoint.x, midpoint.y, midpoint.z],
-      rotation: [euler.x, euler.y, euler.z],
+      position: midpoint.toArray() as [number, number, number],
+      rotation: [euler.x, euler.y, euler.z] as [number, number, number],
       height
     };
   }, [startPosition, endPosition]);
@@ -88,7 +89,11 @@ export default function Bone({
   });
 
   return (
-    <mesh ref={ref} position={position} rotation={rotation}>
+    <mesh 
+      ref={ref} 
+      position={position} 
+      rotation={rotation}
+    >
       <cylinderGeometry args={[thickness, thickness, 1, 8]} />
       <meshStandardMaterial color={color} />
     </mesh>

@@ -33,15 +33,14 @@ export default function Skeleton({
       {Object.entries(jointPositions).map(([jointName, position]) => (
         <Joint 
           key={jointName}
-          name={jointName}
-          position={position}
+          position={position as [number, number, number]}
           highlight={highlightedJoint === jointName}
           color={highlightedJoint === jointName ? "#f56565" : "#4299e1"}
         />
       ))}
       
       {/* Render all bones (connections between joints) */}
-      {jointConnections.map(([startJoint, endJoint], idx) => {
+      {jointConnections.map(([startJoint, endJoint]) => {
         // Skip if either joint doesn't exist in the data
         if (!jointPositions[startJoint] || !jointPositions[endJoint]) {
           return null;

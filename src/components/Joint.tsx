@@ -6,8 +6,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 interface JointProps {
-  position: number[];
-  name: string;
+  position: [number, number, number];
   color?: string;
   size?: number;
   highlight?: boolean;
@@ -15,7 +14,6 @@ interface JointProps {
 
 export default function Joint({ 
   position, 
-  name, 
   color = "#4299e1", 
   size = 0.03,
   highlight = false

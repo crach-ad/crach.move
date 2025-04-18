@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { MocapData } from '@/data/sampleMocapData';
 
 // Utility functions for LLM processing
 import { callLLM, prepareDataContext } from '@/utils/llmUtils';
+// Use the same MocapData type that llmUtils uses
+import { MocapData } from '@/data/sampleMocapData';
 import { Message, MotionAnalysisChatProps } from '@/utils/types';
 
 // Custom hook for draggable functionality
@@ -124,9 +125,8 @@ export default function MotionAnalysisChat({
     
     try {
       // Prepare data context to send to LLM
-      // Use type assertion to ensure compatibility between different MocapData types
       const dataContext = prepareDataContext(
-        mocapData as any, 
+        mocapData as MocapData, 
         currentFrame, 
         subFramePosition, 
         selectedJoint
@@ -243,10 +243,10 @@ export default function MotionAnalysisChat({
               <div className="text-gray-400 text-sm">
                 <p className="mb-2">Ask questions about the motion data to get insights and analysis. Here are some examples:</p>
                 <ul className="list-disc pl-5 space-y-1">
-                  <li>What's the pattern of movement for the selected joint?</li>
+                  <li>What&apos;s the pattern of movement for the selected joint?</li>
                   <li>Are there any anomalies in this motion sequence?</li>
                   <li>How does the hip rotation compare to the shoulder movement?</li>
-                  <li>What's the peak velocity of the right ankle?</li>
+                  <li>What&apos;s the peak velocity of the right ankle?</li>
                 </ul>
               </div>
             ) : (

@@ -73,15 +73,25 @@ export function prepareDataContext(
         }
       }
       
-      // Add trajectory information if we have enough frames
-      const trajectoryFrames = 5;
+      // Trajectory information was planned for future implementation
+      // but is not currently being used
+      
+      // Use a type extension with unknown properties to handle possible additional data
+      type ExtendedJointData = {
+        position: number[];
+        parent_joint?: string;
+        child_joints?: string[];
+      };
+      
+      // Type assertion to handle optional joint relationship properties
+      const extendedJointData = jointData as unknown as ExtendedJointData;
       
       // Add relationships to other joints if available
-      if (jointData.parent_joint) {
-        context += `- Parent joint: ${jointData.parent_joint}\n`;
+      if (extendedJointData.parent_joint) {
+        context += `- Parent joint: ${extendedJointData.parent_joint}\n`;
       }
-      if (jointData.child_joints && jointData.child_joints.length > 0) {
-        context += `- Child joints: ${jointData.child_joints.join(', ')}\n`;
+      if (extendedJointData.child_joints && extendedJointData.child_joints.length > 0) {
+        context += `- Child joints: ${extendedJointData.child_joints.join(', ')}\n`;
       }
     }
   } else {
@@ -100,9 +110,16 @@ export function prepareDataContext(
         const position = jointData.position;
         context += `- Position: x=${position[0].toFixed(2)}, y=${position[1].toFixed(2)}, z=${position[2].toFixed(2)}\n`;
         
-        // Only add velocity for key joints
-        if (jointData.velocity) {
-          const velocity = jointData.velocity;
+        // Extended type for potential velocity data
+        interface JointDataWithVelocity extends Record<string, unknown> {
+          position: number[];
+          velocity?: number[];
+        }
+        
+        // Check if velocity exists using type assertion
+        const jointWithVelocity = jointData as JointDataWithVelocity;
+        if (jointWithVelocity.velocity && jointWithVelocity.velocity.length >= 3) {
+          const velocity = jointWithVelocity.velocity;
           context += `- Velocity: x=${velocity[0].toFixed(2)}, y=${velocity[1].toFixed(2)}, z=${velocity[2].toFixed(2)}\n`;
         }
       }
@@ -111,10 +128,18 @@ export function prepareDataContext(
         context += `\n*Note: Data for ${jointNames.length - 5} additional joints is available but not shown here for brevity.*\n`;
       }
       
+      // Define extended type for frame data that might have motion analysis
+      interface FrameDataWithAnalysis extends Record<string, unknown> {
+        timestamp: string;
+        joint_data: Record<string, unknown>;
+        motion_analysis?: Record<string, string | number>;
+      }
+      
       // Add motion analysis if available
-      if (currentFrameData.motion_analysis) {
+      const frameWithAnalysis = currentFrameData as FrameDataWithAnalysis;
+      if (frameWithAnalysis.motion_analysis) {
         context += '\n## Motion Analysis\n';
-        for (const [key, value] of Object.entries(currentFrameData.motion_analysis)) {
+        for (const [key, value] of Object.entries(frameWithAnalysis.motion_analysis)) {
           context += `- ${key}: ${value}\n`;
         }
       }

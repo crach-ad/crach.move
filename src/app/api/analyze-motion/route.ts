@@ -73,28 +73,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         response: completion.choices[0].message.content
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      // Define error type for better handling
+      type OpenAIError = {
+        message?: string;
+        type?: string;
+        status?: number;
+        code?: string;
+      };
+
       // Detailed error logging with specific error message extraction
-      console.error('Error from OpenAI API:', error?.message || error);
+      console.error('Error from OpenAI API:', error instanceof Error ? error.message : String(error));
+      
+      // Cast to appropriate error type for handling
+      const openAIError = error as OpenAIError;
       
       // Extract useful error details without exposing sensitive information
       const errorDetails = {
-        message: error?.message,
-        type: error?.type,
-        status: error?.status,
-        code: error?.code
+        message: openAIError.message || 'Unknown error',
+        type: openAIError.type || 'Unknown type',
       };
       console.error('Error details:', JSON.stringify(errorDetails, null, 2));
       
-      // Provide a helpful error message based on error type
-      let errorMessage = "There was an error processing your request. ";
+      // Try to check what kind of error occurred for better error messages
+      let errorMessage = "An error occurred while analyzing motion data";
       
-      if (error?.message?.includes("authentication") || error?.message?.includes("API key")) {
-        errorMessage += "There seems to be an issue with the API authentication. ";
-      } else if (error?.message?.includes("billing") || error?.message?.includes("insufficient")) {
-        errorMessage += "There might be an issue with the account billing. ";
-      } else if (error?.message?.includes("rate limit")) {
-        errorMessage += "We've hit a rate limit. Please try again in a moment. ";
+      const errorMsg = errorDetails.message;
+      if (typeof errorMsg === 'string') {
+        if (errorMsg.includes("authentication") || errorMsg.includes("API key")) {
+          errorMessage += "There seems to be an issue with the API authentication. ";
+        } else if (errorMsg.includes("billing") || errorMsg.includes("insufficient")) {
+          errorMessage += "There might be an issue with the account billing. ";
+        } else if (errorMsg.includes("rate limit")) {
+          errorMessage += "We've hit a rate limit. Please try again in a moment. ";
+        }
       }
       
       // Use fallback response with specific error message

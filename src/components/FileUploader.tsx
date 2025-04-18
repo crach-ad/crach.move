@@ -24,10 +24,9 @@ const PlusIcon = () => (
 
 interface FileUploaderProps {
   onDataLoaded: (data: MocapData) => void;
-  isUploaded?: boolean;
 }
 
-export default function FileUploader({ onDataLoaded, isUploaded = false }: FileUploaderProps) {
+export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -78,20 +77,34 @@ export default function FileUploader({ onDataLoaded, isUploaded = false }: FileU
   };
 
   // Validate the uploaded data has the expected structure
-  const validateMocapData = (data: any): boolean => {
+  const validateMocapData = (data: unknown): boolean => {
+    // Type guard to ensure data is an object
+    if (!data || typeof data !== 'object') {
+      return false;
+    }
+    
+    // Type assertion after validation
+    const mocapData = data as { mocap_data?: unknown };
+    
     // Basic structure validation
-    if (!data || !Array.isArray(data.mocap_data)) {
+    if (!mocapData.mocap_data || !Array.isArray(mocapData.mocap_data)) {
       return false;
     }
     
     // Validate at least one frame exists
-    if (data.mocap_data.length === 0) {
+    if (mocapData.mocap_data.length === 0) {
       return false;
     }
     
-    // Validate first frame has expected structure
-    const firstFrame = data.mocap_data[0];
-    if (!firstFrame.timestamp || !firstFrame.joint_data) {
+    // Check if first frame has the expected structure
+    const firstFrame = mocapData.mocap_data[0];
+    if (typeof firstFrame !== 'object' || firstFrame === null) {
+      return false;
+    }
+    
+    // Type assertion after validation
+    const frameData = firstFrame as { timestamp?: unknown, joint_data?: unknown };
+    if (!frameData.timestamp || !frameData.joint_data || typeof frameData.joint_data !== 'object') {
       return false;
     }
     

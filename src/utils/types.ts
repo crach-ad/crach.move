@@ -24,7 +24,7 @@ export interface FrameData {
     [key: string]: JointData;
   };
   motion_analysis?: {
-    [key: string]: any;
+    [key: string]: string | number | boolean | null;
   };
 }
 
@@ -36,7 +36,7 @@ export interface MocapData {
   mocap_data: FrameData[];
   frame_data: FrameData[];
   metadata?: {
-    [key: string]: any;
+    [key: string]: string | number | boolean | null | object;
   };
 }
 
