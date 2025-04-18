@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       // Call OpenAI with proper configuration for the Project API format key
       // Note: Keys starting with 'sk-proj-' are Project API keys which have different requirements
       const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",  // More widely available model
+        model: "gpt-4o",  // Latest and most capable model
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Motion data context:\n${context}\n\nUser question: ${question}` }

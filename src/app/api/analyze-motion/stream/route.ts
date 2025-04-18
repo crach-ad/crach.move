@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     
     // Create OpenAI streaming completion
     const stream = await openai.chat.completions.create({
-      model: "gpt-4", // Use gpt-4-turbo if available in your account
+      model: "gpt-4o", // Latest and most capable model
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: `Motion data context:\n${context}\n\nUser question: ${question}` }
