@@ -19,6 +19,15 @@ const createOpenAIClient = () => {
     return null;
   }
   
+  // Log sanitized info about the API key for debugging
+  console.log("API Key available:", true);
+  console.log("API Key length:", process.env.OPENAI_API_KEY.length);
+  
+  // Check if it's a regular API key or a Project API key (both are valid)
+  const isRegularKey = process.env.OPENAI_API_KEY.startsWith("sk-") && !process.env.OPENAI_API_KEY.startsWith("sk-proj-");
+  const isProjectKey = process.env.OPENAI_API_KEY.startsWith("sk-proj-");
+  console.log("API Key format (stream):", isProjectKey ? "Project API key" : (isRegularKey ? "Regular API key" : "Unknown format"));
+  
   // Only create the client when API key is available
   return new OpenAI({
     apiKey: process.env.OPENAI_API_KEY.trim(),
