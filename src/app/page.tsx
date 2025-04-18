@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { sampleMocapData, jointNames, MocapData } from "@/data/sampleMocapData";
+import { sampleMocapData, jointNames } from "@/data/sampleMocapData";
+import { MocapData } from "@/utils/types";
 import MotionScene from "@/components/MotionScene";
 import PlaybackControls from "@/components/PlaybackControls";
 import JointDetails from "@/components/JointDetails";
@@ -95,7 +96,7 @@ export default function Home() {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isPlaying, frameIndex, playbackSpeed]);
+  }, [isPlaying, frameIndex, playbackSpeed, mocapData.mocap_data.length]);
   
   // Handle joint selection
   const handleSelectJoint = (jointName: string | null) => {
