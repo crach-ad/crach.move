@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Grid, Environment, TransformControls } from "@react-three/drei";
 import { Suspense } from "react";
-import { MocapData } from "@/data/sampleMocapData";
+import { MocapData } from "@/utils/types";
 import Skeleton from "./Skeleton";
 import { getInterpolatedFrame } from "@/utils/mocapUtils";
 import * as THREE from "three";

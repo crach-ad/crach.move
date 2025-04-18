@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { MocapData, jointConnections } from "@/data/sampleMocapData";
+import { jointConnections } from "@/data/sampleMocapData";
+import { MocapData } from "@/utils/types";
 import Joint from "./Joint";
 import Bone from "./Bone";
 

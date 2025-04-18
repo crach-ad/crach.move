@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MocapData } from "@/data/sampleMocapData";
+import { MocapData } from "@/utils/types";
 
 interface PlaybackControlsProps {
   mocapData: MocapData;
